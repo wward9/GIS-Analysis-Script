@@ -4,19 +4,10 @@
 ##############################################################################################
 ##############################################################################################
 
-Google_Master_Roster_and_Coverage_Master_Store_List <- read_csv("~/Desktop/Data Science/Work Files/Google Master Roster and Coverage - Master Store List.csv")
-View(Google_Master_Roster_and_Coverage_Master_Store_List)
-
-data <- Google_Master_Roster_and_Coverage_Master_Store_List[1:400,]
-StoreID <- "Store ID"
-lat <- "Lat"
-long <- "Long"
-
-MarketClustering <- function(data, StoreID, lat, long, dist, method="complete"){
+MarketCluster <- function(data, StoreID, lat, long, dist, method="complete")
+  {
  
 require(cluster)
-require(rJava)
-  
 dat <- data[,c(StoreID,lat,long)]
 colnames(dat) <- c("StoreID", "lat", "long")
 
@@ -47,7 +38,7 @@ GeoDistanceInMetresMatrix <- function(df.geopoints){
     # E.g. g1 <- list(list("index"=1, "lat"=12.1, "lon"=10.1), list("index"=3, "lat"=12.1, "lon"=13.2))
     DistM <- function(g1, g2){
       require("Imap")
-      return(ifelse(g1$StoreID > g2$StoreID, 0, gdist(lat.1=g1$lat, long.1=g1$long, lat.2=g2$lat, long.2=g2$long, units="m")))
+      return(ifelse(g1$StoreID > g2$StoreID, 0, gdist(lat.1=g1$lat, lon.1=g1$long, lat.2=g2$lat, lon.2=g2$long, units="m")))
     }
     return(mapply(DistM, g1, g2))
   }
@@ -79,7 +70,7 @@ dmatrix <- (GeoDistanceInMetresMatrix(dat) / 1609.34)# creates large matrix with
 
 ##############################################################################################
 ##############################################################################################
-############                          Test  Clustering Code                   ################
+############                          Clustering Based on distance                        ################
 ##############################################################################################
 ##############################################################################################
 
@@ -87,12 +78,11 @@ dmatrix <- (GeoDistanceInMetresMatrix(dat) / 1609.34)# creates large matrix with
 #Uses complete linkage method which defines the distance between clusters as the distance between the two furthest points
 clus <- agnes(dmatrix,
                    stand = FALSE,diss = TRUE, method = method, keep.diss=TRUE, trace.lev = 0)
-
 clus <- as.hclust(clus)
 
 plot(clus, ylab = "Distance(Miles)")
 
-merch$clus <- cutree(clus, h = dist)
+dat$MarketID <- cutree(clus, h = dist)
 }
 
 
